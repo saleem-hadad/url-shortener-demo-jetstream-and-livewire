@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Link;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
@@ -55,7 +56,11 @@ class RouteServiceProvider extends ServiceProvider
     protected function configureRateLimiting()
     {
         RateLimiter::for('api', function (Request $request) {
-            return Limit::perMinute(60);
+            $plan = Link::where('shortened', $request->link)->firstOrFail()->user->plan;
+
+            $limit = $plan == 'free' ? 10 : 100;
+
+            return Limit::perMinute($limit);
         });
     }
 }
